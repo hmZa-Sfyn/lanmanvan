@@ -1,0 +1,12 @@
+name: hex-decode
+description: "Decodes hexadecimal data"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - encoding
+options:
+  data:
+    type: string
+    description: Hex data to decode
+    required: true

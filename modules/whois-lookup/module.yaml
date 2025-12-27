@@ -1,0 +1,13 @@
+name: whois-lookup
+description: "Query WHOIS information for domains"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - recon
+options:
+  domain:
+    type: string
+    description: Domain to lookup
+    required: true

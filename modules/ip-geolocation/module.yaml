@@ -1,0 +1,13 @@
+name: ip-geolocation
+description: "Get geolocation info for IP address"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - info
+options:
+  ip:
+    type: string
+    description: IP address to geolocate
+    required: true

@@ -1,0 +1,17 @@
+name: subdomain-enum
+description: "Enumerate subdomains for a domain"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - recon
+  - networking
+options:
+  domain:
+    type: string
+    description: Domain to enumerate
+    required: true
+  wordlist:
+    type: string
+    description: Subdomains to try (comma separated)
+    required: false

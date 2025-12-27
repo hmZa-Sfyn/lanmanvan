@@ -1,0 +1,13 @@
+name: base64-decode
+description: "Decodes Base64 encoded data"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - encoding
+  - utilities
+options:
+  data:
+    type: string
+    description: Base64 data to decode
+    required: true

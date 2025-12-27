@@ -1,0 +1,13 @@
+name: header-info
+description: "Extract HTTP headers from a website"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - web
+  - recon
+options:
+  url:
+    type: string
+    description: Target URL
+    required: true

@@ -1,0 +1,17 @@
+name: screenshot
+description: "Capture webpage screenshots"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - web
+  - utilities
+options:
+  url:
+    type: string
+    description: URL to screenshot
+    required: true
+  output:
+    type: string
+    description: Output file (optional)
+    required: false

@@ -1,0 +1,13 @@
+name: url-encode
+description: "Encodes data for URL usage"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - encoding
+  - utilities
+options:
+  data:
+    type: string
+    description: Data to URL encode
+    required: true

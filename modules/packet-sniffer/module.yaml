@@ -1,0 +1,17 @@
+name: packet-sniffer
+description: "Capture network packets (requires root)"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - advanced
+options:
+  interface:
+    type: string
+    description: Network interface to sniff
+    required: false
+  count:
+    type: integer
+    description: Number of packets to capture
+    required: false

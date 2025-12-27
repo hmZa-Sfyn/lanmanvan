@@ -1,0 +1,13 @@
+name: base64-encode
+description: "Encodes data to Base64 format"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - encoding
+  - utilities
+options:
+  data:
+    type: string
+    description: Data to encode
+    required: true

@@ -1,0 +1,17 @@
+name: password-generator
+description: "Generate strong random passwords"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - utilities
+  - security
+options:
+  length:
+    type: integer
+    description: Password length (default 16)
+    required: false
+  count:
+    type: integer
+    description: Number of passwords to generate
+    required: false

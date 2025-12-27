@@ -1,0 +1,17 @@
+name: directory-scanner
+description: "Scan web server for common directories"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - web
+  - recon
+options:
+  url:
+    type: string
+    description: Target URL (e.g., http://example.com)
+    required: true
+  wordlist:
+    type: string
+    description: Directories to scan (comma separated)
+    required: false

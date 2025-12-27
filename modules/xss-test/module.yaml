@@ -1,0 +1,13 @@
+name: xss-test
+description: "Test URL for XSS vulnerabilities"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - security
+  - web
+options:
+  url:
+    type: string
+    description: Target URL
+    required: true

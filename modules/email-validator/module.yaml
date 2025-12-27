@@ -1,0 +1,13 @@
+name: email-validator
+description: "Validate and check email addresses"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - utilities
+  - validation
+options:
+  email:
+    type: string
+    description: Email address to validate
+    required: true

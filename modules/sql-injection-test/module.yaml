@@ -1,0 +1,13 @@
+name: sql-injection-test
+description: "Test URL for basic SQL injection vulnerabilities"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - security
+  - web
+options:
+  url:
+    type: string
+    description: Target URL with parameter
+    required: true

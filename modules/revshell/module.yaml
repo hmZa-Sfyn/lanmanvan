@@ -1,0 +1,28 @@
+name: revshell
+description: "Generates reverse shell payloads"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - payload
+  - shell
+  - exploitation
+options:
+  lhost:
+    type: string
+    description: Attacker listening host
+    default: "127.0.0.1"
+    required: true
+  lport:
+    type: string
+    description: Attacker listening port
+    default: "4444"
+    required: true
+  type:
+    type: string
+    description: Shell type (bash, python)
+    default: "bash"
+    required: false
+required:
+  - lhost
+  - lport

@@ -1,0 +1,12 @@
+name: hex-encode
+description: "Encodes data to hexadecimal"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - encoding
+options:
+  data:
+    type: string
+    description: Data to hex encode
+    required: true

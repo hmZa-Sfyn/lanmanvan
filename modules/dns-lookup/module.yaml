@@ -1,0 +1,13 @@
+name: dns-lookup
+description: "Resolve domain names to IP addresses"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - dns
+options:
+  domain:
+    type: string
+    description: Domain to resolve
+    required: true

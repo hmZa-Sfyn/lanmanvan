@@ -1,0 +1,16 @@
+name: hashgen
+description: "Generates MD5, SHA1, SHA256, and SHA512 hashes"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - crypto
+  - hashing
+  - utilities
+options:
+  data:
+    type: string
+    description: Data to hash
+    required: true
+required:
+  - data

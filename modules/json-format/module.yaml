@@ -1,0 +1,17 @@
+name: json-format
+description: "Format and validate JSON data"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - utilities
+  - formatting
+options:
+  data:
+    type: string
+    description: JSON data to format
+    required: true
+  indent:
+    type: integer
+    description: Indentation spaces (default 2)
+    required: false

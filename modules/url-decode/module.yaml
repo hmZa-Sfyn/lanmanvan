@@ -1,0 +1,13 @@
+name: url-decode
+description: "Decodes URL encoded data"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - encoding
+  - utilities
+options:
+  data:
+    type: string
+    description: URL encoded data to decode
+    required: true

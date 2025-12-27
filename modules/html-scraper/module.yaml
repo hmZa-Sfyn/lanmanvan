@@ -1,0 +1,17 @@
+name: html-scraper
+description: "Extract data from HTML pages"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - web
+  - utilities
+options:
+  url:
+    type: string
+    description: URL to scrape
+    required: true
+  selector:
+    type: string
+    description: CSS selector (optional)
+    required: false

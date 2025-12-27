@@ -1,0 +1,13 @@
+name: ssl-checker
+description: "Check SSL certificate validity"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - security
+  - web
+options:
+  domain:
+    type: string
+    description: Domain to check
+    required: true

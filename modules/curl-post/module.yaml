@@ -1,0 +1,22 @@
+name: curl-post
+description: "Performs POST requests with data to specified URLs"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - http
+  - utilities
+options:
+  url:
+    type: string
+    description: Target URL for POST request
+    required: true
+  data:
+    type: string
+    description: POST data (JSON or form data)
+    required: true
+  headers:
+    type: string
+    description: Custom headers (JSON format)
+    required: false

@@ -1,0 +1,23 @@
+name: hostdiscovery
+description: "Discover live hosts on a network using ping with multithreading"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - reconnaissance
+  - network
+  - discovery
+  - threaded
+options:
+  network:
+    type: string
+    description: "Network in CIDR notation (e.g., 192.168.1.0/24)"
+    default: "192.168.1.0/24"
+    required: true
+  threads:
+    type: int
+    description: "Number of threads to use for scanning"
+    default: "10"
+    required: false
+required:
+  - network

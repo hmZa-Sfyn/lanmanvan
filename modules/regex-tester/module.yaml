@@ -1,0 +1,16 @@
+name: regex-tester
+description: "Test regular expressions against strings"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - utilities
+options:
+  pattern:
+    type: string
+    description: Regex pattern
+    required: true
+  text:
+    type: string
+    description: Text to match against
+    required: true

@@ -1,0 +1,22 @@
+name: curl-get
+description: "Performs GET requests to specified URLs"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - http
+  - utilities
+options:
+  url:
+    type: string
+    description: Target URL for GET request
+    required: true
+  headers:
+    type: string
+    description: Custom headers (JSON format, optional)
+    required: false
+  timeout:
+    type: integer
+    description: Request timeout in seconds
+    required: false

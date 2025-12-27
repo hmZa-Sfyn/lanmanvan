@@ -1,0 +1,13 @@
+name: port-info
+description: "Get information about common ports"
+type: python
+author: LanManVan Team
+version: 1.0.0
+tags:
+  - networking
+  - info
+options:
+  port:
+    type: integer
+    description: Port number to lookup
+    required: true
