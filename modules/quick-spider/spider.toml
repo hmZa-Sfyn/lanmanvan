@@ -1,0 +1,7 @@
+# Quick-Spider Results
+# Target: http://www.shortpornvids.com
+# Discovered: 1
+
+urls = [
+  {url = "http://www.shortpornvids.com", type = "[PAGE]"},
+]
