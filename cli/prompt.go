@@ -2,8 +2,10 @@ package cli
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"os/user"
+	"time"
 
 	"github.com/fatih/color"
 )
@@ -22,10 +24,14 @@ func (cli *CLI) GetPrompt() string {
 	)
 }
 
-// PrintBanner prints the application banner
+// PrintBanner prints a random application banner
 func (cli *CLI) PrintBanner() {
-	fmt.Println()
-	color.New(color.FgCyan, color.Bold).Println(`
+	// Seed random (only needed once)
+	rand.Seed(time.Now().UnixNano())
+
+	banners := []string{
+		// Banner 1: Original LANMANVAN
+		`
   ██▓     ▄▄▄       ███▄    █  ███▄ ▄███▓ ▄▄▄       ███▄    █  ██▒   █▓ ▄▄▄       ███▄    █ 
  ▓██▒    ▒████▄     ██ ▀█   █  ▓██▒▀█▀ ██▒▒████▄     ██ ▀█   █ ▓██░   █▒▒████▄     ██ ▀█   █ 
  ▒██░    ▒██  ▀█▄  ▓██  ▀█ ▄█▒ ▓██    ▓██░▒██  ▀█▄  ▓██  ▀█ ▄█  ▓██  █▒░▒██  ▀█▄  ▓██  ▀█ ▄█ 
@@ -35,14 +41,48 @@ func (cli *CLI) PrintBanner() {
  ░ ░ ▒  ░  ▒   ▒▒ ░░ ░░   ░ ▒░░  ░      ░  ▒   ▒▒ ░░ ░░   ░ ▒░   ░ ░░░░   ▒   ▒▒ ░░ ░░   ░ ▒░
    ░ ░     ░   ▒      ░   ░ ░ ░      ░     ░   ▒      ░   ░ ░      ░     ░   ▒      ░   ░ ░ 
      ░  ░      ░  ░        ░        ░         ░  ░        ░        ░           ░  ░        ░
-`)
+`,
+
+		// Banner 2: Apache-inspired
+		`
+                                                                                             
+@@@        @@@@@@   @@@  @@@  @@@@@@@@@@    @@@@@@   @@@  @@@  @@@  @@@   @@@@@@   @@@  @@@  
+@@@       @@@@@@@@  @@@@ @@@  @@@@@@@@@@@  @@@@@@@@  @@@@ @@@  @@@  @@@  @@@@@@@@  @@@@ @@@  
+@@!       @@!  @@@  @@!@!@@@  @@! @@! @@!  @@!  @@@  @@!@!@@@  @@!  @@@  @@!  @@@  @@!@!@@@  
+!@!       !@!  @!@  !@!!@!@!  !@! !@! !@!  !@!  @!@  !@!!@!@!  !@!  @!@  !@!  @!@  !@!!@!@!  
+@!!       @!@!@!@!  @!@ !!@!  @!! !!@ @!@  @!@!@!@!  @!@ !!@!  @!@  !@!  @!@!@!@!  @!@ !!@!  
+!!!       !!!@!!!!  !@!  !!!  !@!   ! !@!  !!!@!!!!  !@!  !!!  !@!  !!!  !!!@!!!!  !@!  !!!  
+!!:       !!:  !!!  !!:  !!!  !!:     !!:  !!:  !!!  !!:  !!!  :!:  !!:  !!:  !!!  !!:  !!!  
+ :!:      :!:  !:!  :!:  !:!  :!:     :!:  :!:  !:!  :!:  !:!   ::!!:!   :!:  !:!  :!:  !:!  
+ :: ::::  ::   :::   ::   ::  :::     ::   ::   :::   ::   ::    ::::    ::   :::   ::   ::  
+: :: : :   :   : :  ::    :    :      :     :   : :  ::    :      :       :   : :  ::    :   
+`,
+
+		// Banner 5: Matrix-style / Hacker vibe
+		`
+██╗      █████╗ ███╗   ██╗███╗   ███╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███╗   ██╗
+██║     ██╔══██╗████╗  ██║████╗ ████║██╔══██╗████╗  ██║██║   ██║██╔══██╗████╗  ██║
+██║     ███████║██╔██╗ ██║██╔████╔██║███████║██╔██╗ ██║██║   ██║███████║██╔██╗ ██║
+██║     ██╔══██║██║╚██╗██║██║╚██╔╝██║██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║██║╚██╗██║
+███████╗██║  ██║██║ ╚████║██║ ╚═╝ ██║██║  ██║██║ ╚████║ ╚████╔╝ ██║  ██║██║ ╚████║
+╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚═╝  ╚═══╝
+`,
+	}
+
+	// Pick random banner
+	banner := banners[2]
 
 	fmt.Println()
-	color.New(color.FgGreen, color.Bold).Println("╔════════════════════════════════════════════════════════════════════╗")
-	color.New(color.FgGreen, color.Bold).Println("║   ✦ LANMANVAN v2.0 - Advanced Modular Exploitation Framework ✦      ║")
-	color.New(color.FgGreen, color.Bold).Println("║   Go Core | Python3/Bash Modules | Dynamic UI | Security Tools       ║")
-	color.New(color.FgGreen, color.Bold).Println("╚════════════════════════════════════════════════════════════════════╝")
+	color.New(color.FgCyan, color.Bold).Println(banner)
 	fmt.Println()
+
+	// Common footer for all banners
+	color.New(color.FgGreen, color.Bold).Println("╔═════════════════════════════════════════════════════════════════╗")
+	color.New(color.FgGreen, color.Bold).Println("║   ✦ LANMANVAN v2.0 - Advanced Modular Tooling Framework ✦       ║")
+	color.New(color.FgGreen, color.Bold).Println("║   Go Core | Python3/Bash Modules | Dynamic UI | Security Tools  ║")
+	color.New(color.FgGreen, color.Bold).Println("╚═════════════════════════════════════════════════════════════════╝")
+	fmt.Println()
+
 	fmt.Printf("Type %s for available commands\n\n", color.CyanString("'help'"))
 }
 

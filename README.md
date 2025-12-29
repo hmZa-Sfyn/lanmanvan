@@ -39,29 +39,44 @@ Or specify a custom modules directory:
 ### Available Commands
 
 ```
+
+
+██╗      █████╗ ███╗   ██╗███╗   ███╗ █████╗ ███╗   ██╗██╗   ██╗ █████╗ ███╗   ██╗
+██║     ██╔══██╗████╗  ██║████╗ ████║██╔══██╗████╗  ██║██║   ██║██╔══██╗████╗  ██║
+██║     ███████║██╔██╗ ██║██╔████╔██║███████║██╔██╗ ██║██║   ██║███████║██╔██╗ ██║
+██║     ██╔══██║██║╚██╗██║██║╚██╔╝██║██╔══██║██║╚██╗██║╚██╗ ██╔╝██╔══██║██║╚██╗██║
+███████╗██║  ██║██║ ╚████║██║ ╚═╝ ██║██║  ██║██║ ╚████║ ╚████╔╝ ██║  ██║██║ ╚████║
+╚══════╝╚═╝  ╚═╝╚═╝  ╚═══╝╚═╝     ╚═╝╚═╝  ╚═╝╚═╝  ╚═══╝  ╚═══╝  ╚═╝  ╚═╝╚═╝  ╚═══╝
+
+
+╔═════════════════════════════════════════════════════════════════╗
+║   ✦ LANMANVAN v2.0 - Advanced Modular Tooling Framework ✦       ║
+║   Go Core | Python3/Bash Modules | Dynamic UI | Security Tools  ║
+╚═════════════════════════════════════════════════════════════════╝
+
+Type 'help' for available commands
+
 hmza@0root ❯ help
 
-╔════════════════════════════════════════════════════════════════╗
-║                    📚 AVAILABLE COMMANDS                        ║
-╚════════════════════════════════════════════════════════════════╝
+Available Commands:
 
-  ❯help, h, ?              Show this help message
-  ❯list, ls                List all modules
-  ❯search <keyword>        Search modules by name/tag
-  ❯info <module>           Show detailed module information
-  ❯<module>!               Quick show module options and usage
-  ❯run <module> [args]     Execute a module with arguments
-  ❯<module> [args]         Shorthand: <module> arg_key=value
-  ❯<module> arg_key = value Format with spaces (alternative)
-  ❯env, envs               Show all global environment variables
-  ❯key=value               Set global environment variable (persistent)
-  ❯key=?                   View global environment variable value
-  ❯create <name> [type]    Create a new module (python/bash)
-  ❯edit <module>           Edit module files
-  ❯delete <module>         Delete a module
-  ❯history                 Show command history
-  ❯clear                   Clear screen
-  ❯exit, quit, q           Exit framework
+  help, h, ?                Show this help message, aliases: h, ?
+  list, ls                  List all modules, aliases: ls
+  search <keyword>          Search modules by name/tag, example: search network
+  info <module>             Show detailed module information, example: info network
+  <module>!                 Quick show module options and usage, example: network!
+  run <module> [args]       Execute a module with arguments, example: run network ip=
+  <module> [args]           Shorthand: <module> arg_key=value, example: network ip=192.168.1.1
+  <module> arg_key = value  Format with spaces (alternative), example: network ip = 192.168.1.1
+  env, envs                 Show all global environment variables, aliases: envs
+  key=value                 Set global environment variable (persistent), example: timeout=10
+  key=?                     View global environment variable value, example: timeout=?
+  create <name> [type]      Create a new module (python/bash), example: create mymodule python
+  edit <module>             Edit module files, example: edit mymodule
+  delete <module>           Delete a module, example: delete mymodule
+  history                   Show command history
+  clear                     Clear screen, aliases: cls
+  exit, quit, q             Exit framework, aliases: quit, q
 
 hmza@0root ❯  
 ```
@@ -71,25 +86,25 @@ hmza@0root ❯
 ### List Available Modules
 
 ```
-[user@host]$ list
+user@host$ list
 ```
 
 ### Get Module Information
 
 ```
-[user@host]$ info portscan
+user@host$ info portscan
 ```
 
 ### Run a Module
 
 ```
-[user@host]$ run portscan host=192.168.1.1 ports=80,443,22
+user@host$ run portscan host=192.168.1.1 ports=80,443,22
 ```
 
 Or use shorthand:
 
 ```
-[user@host]$ portscan host=192.168.1.1 ports=80,443,22
+user@host$ portscan host=192.168.1.1 ports=80,443,22
 ```
 
 ## Creating Modules
