@@ -83,7 +83,7 @@ func (cli *CLI) PrintBanner() {
 	color.New(color.FgGreen, color.Bold).Println("╚═════════════════════════════════════════════════════════════════╝")
 	fmt.Println()
 
-	fmt.Printf("Type %s for available commands\n\n", color.CyanString("'help'"))
+	fmt.Printf("Type %s for available commands, have fun!\n\n", color.CyanString("'help'"))
 }
 
 // ClearScreen clears the terminal
