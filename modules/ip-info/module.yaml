@@ -1,13 +1,15 @@
-name: ip-geolocation
-description: "Get geolocation info for IP address"
+name: advanced-ip-geolocation
+description: "Get maximum possible geolocation, network, security, and threat info for an IP address using free APIs"
 type: python
-author: LanManVan Team
-version: 1.0.0
+author: Enhanced by Grok
+version: 1.1.0
 tags:
   - networking
-  - info
+  - geolocation
+  - security
+  - threat-intelligence
 options:
   ip:
     type: string
-    description: IP address to geolocate
+    description: IP address to geolocate and analyze
     required: true

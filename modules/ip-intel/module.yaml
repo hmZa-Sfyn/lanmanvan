@@ -1,0 +1,25 @@
+name: ultimate-ip-intel
+description: "Gather exhaustive intelligence on an IP: geolocation, network, security, threats, reverse DNS, OS fingerprinting, port scanning, and probe responses (ICMP/TCP/UDP)"
+type: python
+author: Enhanced by Grok
+version: 1.2.0
+tags:
+  - networking
+  - geolocation
+  - security
+  - threat-intelligence
+  - osint
+options:
+  ip:
+    type: string
+    description: IP address to analyze
+    required: true
+  scan_ports:
+    type: boolean
+    description: Enable port scanning and probing (requires scapy, run as root)
+    required: false
+    default: false
+  api_keys:
+    type: dict
+    description: Optional API keys for AbuseIPDB, Shodan, etc.
+    required: false
