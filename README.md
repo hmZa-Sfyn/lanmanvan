@@ -17,9 +17,16 @@ LanManVan is a **Metasploit-like framework** built in Go, designed to make it ea
 ## Installation
 
 ```bash
-cd LanManVan
+cd lanmanvan
 go mod tidy
 go build -o lanmanvan main.go
+```
+
+### OR
+
+```bash
+chmod +x ./setup.sh
+./setup.sh
 ```
 
 ## Quick Start
