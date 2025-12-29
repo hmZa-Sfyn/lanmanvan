@@ -140,7 +140,7 @@ func (t *Table) drawRow(cols []string, isHeader bool) string {
 
 // NmapBox creates nmap-style output box
 func NmapBox(title string) string {
-	return color.GreenString("|_ ") + color.CyanString(title)
+	return color.GreenString(" = ") + color.CyanString(title)
 }
 
 // NmapSubBox creates nmap-style sub output
