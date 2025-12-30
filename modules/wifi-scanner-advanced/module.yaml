@@ -28,5 +28,5 @@ options:
     description: Scan specific channel (optional)
     required: false
 required: null
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''

@@ -14,5 +14,5 @@ options:
     required: true
 required:
 - data
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''

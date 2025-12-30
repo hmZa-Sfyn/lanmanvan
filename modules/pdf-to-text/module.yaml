@@ -27,5 +27,5 @@ options:
     description: Page range to extract (e.g., 1-5)
     required: false
 required: null
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''

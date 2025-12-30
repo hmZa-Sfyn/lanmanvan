@@ -15,5 +15,5 @@ options:
     type: string
     description: Hash type (md5, sha1, sha256)
     required: false
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''

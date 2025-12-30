@@ -11,5 +11,5 @@ options:
     type: integer
     description: Port number to lookup
     required: true
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''
