@@ -228,8 +228,14 @@ func (cli *CLI) PrintHistory() {
 	fmt.Println(core.NmapBox(fmt.Sprintf("COMMAND HISTORY (%d)", len(cli.history))))
 
 	for i, cmd := range cli.history {
-		fmt.Printf("   └─ %s %s\n",
-			color.GreenString(fmt.Sprintf("[%d]", i+1)),
+		prefix := "   ├─ "
+		if i == len(cli.history)-1 {
+			prefix = "   └─ "
+		}
+
+		fmt.Printf("%s%s %s\n",
+			prefix,
+			color.GreenString(fmt.Sprintf("[%3d]", i+1)),
 			color.WhiteString(cmd),
 		)
 	}
