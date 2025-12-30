@@ -11,6 +11,9 @@ Performs GET requests to specified URLs
 ## Tags
 networking, http, utilities
 
+
+## Links
+
 ## Options
 
 ### url

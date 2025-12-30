@@ -11,6 +11,9 @@ Encodes data to hexadecimal
 ## Tags
 encoding
 
+
+## Links
+
 ## Options
 
 ### data

@@ -11,6 +11,9 @@ Decodes URL encoded data
 ## Tags
 encoding, utilities
 
+
+## Links
+
 ## Options
 
 ### data

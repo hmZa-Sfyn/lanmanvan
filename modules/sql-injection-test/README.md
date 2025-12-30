@@ -11,6 +11,9 @@ Test URL for basic SQL injection vulnerabilities
 ## Tags
 security, web
 
+
+## Links
+
 ## Options
 
 ### url

@@ -11,6 +11,9 @@ Generates MD5, SHA1, SHA256, and SHA512 hashes
 ## Tags
 crypto, hashing, utilities
 
+
+## Links
+
 ## Options
 
 ### data

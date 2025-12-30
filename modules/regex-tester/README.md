@@ -11,6 +11,9 @@ Test regular expressions against strings
 ## Tags
 utilities
 
+
+## Links
+
 ## Options
 
 ### pattern

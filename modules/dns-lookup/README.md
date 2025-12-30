@@ -11,6 +11,9 @@ Resolve domain names to IP addresses
 ## Tags
 networking, dns
 
+
+## Links
+
 ## Options
 
 ### domain

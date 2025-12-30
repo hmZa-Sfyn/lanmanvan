@@ -11,6 +11,9 @@ Calculate file checksums (MD5, SHA1, SHA256)
 ## Tags
 utilities, hashing
 
+
+## Links
+
 ## Options
 
 ### file

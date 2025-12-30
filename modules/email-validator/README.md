@@ -11,6 +11,9 @@ Validate and check email addresses
 ## Tags
 utilities, validation
 
+
+## Links
+
 ## Options
 
 ### email

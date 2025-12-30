@@ -11,6 +11,9 @@ Encodes data to Base64 format
 ## Tags
 encoding, utilities
 
+
+## Links
+
 ## Options
 
 ### data

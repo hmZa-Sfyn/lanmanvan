@@ -11,6 +11,9 @@ Decodes Base64 encoded data
 ## Tags
 encoding, utilities
 
+
+## Links
+
 ## Options
 
 ### data

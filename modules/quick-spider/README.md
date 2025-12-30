@@ -11,6 +11,9 @@ Simple single-threaded web crawler - lists pages/files with types, saves to TOML
 ## Tags
 web, crawler, simple, reconnaissance
 
+
+## Links
+
 ## Options
 
 ### url

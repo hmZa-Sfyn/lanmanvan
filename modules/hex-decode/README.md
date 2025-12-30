@@ -11,6 +11,9 @@ Decodes hexadecimal data
 ## Tags
 encoding
 
+
+## Links
+
 ## Options
 
 ### data

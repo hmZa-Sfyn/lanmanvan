@@ -11,6 +11,9 @@ Encodes data for URL usage
 ## Tags
 encoding, utilities
 
+
+## Links
+
 ## Options
 
 ### data

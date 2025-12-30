@@ -11,6 +11,9 @@ Test URL for XSS vulnerabilities
 ## Tags
 security, web
 
+
+## Links
+
 ## Options
 
 ### url
