@@ -27,5 +27,5 @@ options:
     required: false
     default: 3600
 required: null
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''

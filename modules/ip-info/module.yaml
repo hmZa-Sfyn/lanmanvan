@@ -14,5 +14,5 @@ options:
     type: string
     description: IP address to geolocate and analyze
     required: true
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''

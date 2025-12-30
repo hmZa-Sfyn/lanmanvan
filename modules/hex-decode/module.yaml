@@ -10,5 +10,5 @@ options:
     type: string
     description: Hex data to decode
     required: true
-github_url: ''
+github_url: 'https://github.com/hmZa-Sfyn/lanmanvan'
 x_url: ''
