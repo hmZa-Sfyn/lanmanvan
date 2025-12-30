@@ -394,5 +394,3 @@ For issues, questions, or contributions, feel free to reach out!
 <a href="https://github.com/hmZa-Sfyn/lanmanvan/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=hmZa-Sfyn/lanmanvan" />
 </a>
-
-Made with [contrib.rocks](https://contrib.rocks).

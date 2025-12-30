@@ -22,42 +22,22 @@ func (cli *CLI) RunModule(moduleName string, args []string) {
 		return
 	}
 
-	// Parse arguments into key=value pairs (supports both arg=value and arg = value)
+	// Parse arguments with support for quoted strings
 	moduleArgs := make(map[string]string)
 	threads := 1
-	i := 0
+	saveLog := false
 
-	for i < len(args) {
-		arg := args[i]
+	parsedArgs := cli.parseArguments(args)
 
-		// Check if it's a key=value pair
-		if strings.Contains(arg, "=") {
-			parts := strings.SplitN(arg, "=", 2)
-			key := strings.TrimSpace(parts[0])
-			value := strings.TrimSpace(parts[1])
-
-			if key == "threads" {
-				fmt.Sscanf(value, "%d", &threads)
-			} else {
-				moduleArgs[key] = value
-			}
-		} else if i+2 < len(args) && args[i+1] == "=" {
-			// Handle "key = value" format
-			key := strings.TrimSpace(arg)
-			value := strings.TrimSpace(args[i+2])
-
-			if key == "threads" {
-				fmt.Sscanf(value, "%d", &threads)
-			} else {
-				moduleArgs[key] = value
-			}
-			i += 2 // Skip the = and value
-		} else {
-			// Positional argument
-			moduleArgs[fmt.Sprintf("arg%d", i)] = arg
+	for key, value := range parsedArgs {
+		switch key {
+		case "threads":
+			fmt.Sscanf(value, "%d", &threads)
+		case "save":
+			saveLog = value == "1" || value == "true" || value == "yes"
+		default:
+			moduleArgs[key] = value
 		}
-
-		i++
 	}
 
 	// Merge global environment variables (command-line args take precedence)
@@ -107,10 +87,18 @@ func (cli *CLI) RunModule(moduleName string, args []string) {
 			}
 
 			fmt.Printf("\n   Example Usage:\n")
-			fmt.Printf("      %s %s=%s\n\n", moduleName, missingArgs[0], "value")
+			fmt.Printf("      %s %s=%s save=1\n\n", moduleName, missingArgs[0], "value")
 			return
 		}
 	}
+
+	// Enable file logging if requested
+	if saveLog {
+		if err := cli.logger.EnableFileLogging(moduleName); err != nil {
+			core.PrintWarning(fmt.Sprintf("Could not enable file logging: %v", err))
+		}
+	}
+	defer cli.logger.Close()
 
 	startTime := time.Now()
 
@@ -119,6 +107,9 @@ func (cli *CLI) RunModule(moduleName string, args []string) {
 		core.PrintInfo(fmt.Sprintf("Executing module '%s' with %d threads...", core.Color("cyan", moduleName), threads))
 	} else {
 		core.PrintInfo(fmt.Sprintf("Executing module '%s'...", core.Color("cyan", moduleName)))
+	}
+	if saveLog {
+		core.PrintSuccess(fmt.Sprintf("Output saved to: %s", cli.logger.GetFilePath()))
 	}
 	fmt.Println()
 

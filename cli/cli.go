@@ -13,6 +13,7 @@ type CLI struct {
 	running bool
 	history []string
 	envMgr  *EnvironmentManager
+	logger  *Logger
 }
 
 // NewCLI creates a new CLI instance
@@ -22,6 +23,7 @@ func NewCLI(modulesDir string) *CLI {
 		running: true,
 		history: make([]string, 0),
 		envMgr:  NewEnvironmentManager(),
+		logger:  NewLogger(),
 	}
 }
 
