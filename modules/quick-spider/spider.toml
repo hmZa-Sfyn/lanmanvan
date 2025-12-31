@@ -1,8 +1,0 @@
-# Quick-Spider Results
-# Target: http://vulnweb.com
-# Discovered: 2
-
-urls = [
-  {url = "http://vulnweb.com", type = "[PAGE]"},
-  {url = "http://vulnweb.com/acunetix-logo.png", type = "[IMG]"},
-]
