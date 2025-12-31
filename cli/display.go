@@ -58,11 +58,11 @@ func (cli *CLI) PrintHelp() {
 		name string
 		desc string
 	}{
-		{"Quoted Strings", "Pass multi-word arguments: arg=\"from here to there\" time=\"15:45 4/6/2025\""},
-		{"Single Quotes", "Alternative quote style: arg='value with spaces'"},
-		{"Save Output", "Save module execution to log file: module_name arg=value save=1"},
-		{"Threaded Execution", "Run module with multiple threads: module_name arg=value threads=5"},
-		{"Log Location", "Output files saved to ./logs/ with timestamp: module_2006-01-02_15-04-05.log"},
+		{"Quoted Strings", "Pass multi-word arguments: arg=\"from here to there\" time=\"15:45 4/6/2025\"."},
+		{"Single Quotes", "Alternative quote style: arg='value with spaces'."},
+		{"Save Output", "Save module execution to log file: module_name arg=value save=1 ."},
+		{"Threaded Execution", "Run module with multiple threads: module_name arg=value threads=5 ."},
+		{"Log Location", "Output files saved to ./logs/ with timestamp: module_2006-01-02_15-04-05.log ."},
 	}
 
 	for _, feat := range advancedFeatures {
