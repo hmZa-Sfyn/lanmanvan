@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"lanmanvan/core"
@@ -75,6 +76,12 @@ func (cli *CLI) Start() error {
 
 // ExecuteCommand processes user commands
 func (cli *CLI) ExecuteCommand(input string) {
+	// Handle for loops: for VAR in START..END -> COMMAND
+	if strings.HasPrefix(input, "for ") && strings.Contains(input, " in ") && strings.Contains(input, " -> ") {
+		cli.executeForLoop(input)
+		return
+	}
+
 	// Handle pipe syntax: cmd1 |> cmd2 |> cmd3
 	if strings.Contains(input, "|>") {
 		cli.executePipedCommands(input)
@@ -231,6 +238,112 @@ func (cli *CLI) GetHistory() []string {
 // Stop stops the CLI loop
 func (cli *CLI) Stop() {
 	cli.running = false
+}
+
+// executeForLoop handles for loop syntax: for VAR in START..END -> COMMAND
+func (cli *CLI) executeForLoop(input string) {
+	// Parse: for VAR in START..END -> COMMAND
+	forIdx := strings.Index(input, "for ")
+	inIdx := strings.Index(input, " in ")
+	arrowIdx := strings.Index(input, " -> ")
+
+	if forIdx == -1 || inIdx == -1 || arrowIdx == -1 {
+		core.PrintError("Invalid for loop syntax. Use: for VAR in 0..256 -> COMMAND")
+		return
+	}
+
+	varName := strings.TrimSpace(input[forIdx+4 : inIdx])
+	rangeStr := strings.TrimSpace(input[inIdx+4 : arrowIdx])
+	command := strings.TrimSpace(input[arrowIdx+4:])
+
+	// Parse range: START..END
+	rangeParts := strings.Split(rangeStr, "..")
+	if len(rangeParts) != 2 {
+		core.PrintError("Invalid range syntax. Use: 0..256")
+		return
+	}
+
+	startStr := strings.TrimSpace(rangeParts[0])
+	endStr := strings.TrimSpace(rangeParts[1])
+
+	start, errStart := strconv.Atoi(startStr)
+	end, errEnd := strconv.Atoi(endStr)
+
+	if errStart != nil || errEnd != nil {
+		core.PrintError("Range must contain valid integers")
+		return
+	}
+
+	fmt.Println()
+	core.PrintInfo(fmt.Sprintf("Executing for loop: %s in %d..%d", varName, start, end))
+	fmt.Println()
+
+	results := []string{}
+	for i := start; i <= end; i++ {
+		// Substitute variable in command
+		expandedCmd := strings.ReplaceAll(command, "$"+varName, fmt.Sprintf("%d", i))
+
+		// Execute the command
+		if strings.Contains(expandedCmd, "|>") {
+			// For pipes, capture output
+			result := cli.executePipedCommandsForLoop(expandedCmd)
+			results = append(results, result)
+		} else if strings.Contains(expandedCmd, "(") && strings.Contains(expandedCmd, ")") {
+			// For builtins, capture output
+			result, err := cli.executeSingleBuiltin(expandedCmd)
+			if err == nil {
+				results = append(results, result)
+			}
+		} else {
+			// For modules, execute normally
+			parts := strings.Fields(expandedCmd)
+			if len(parts) > 0 {
+				cli.ExecuteCommand(expandedCmd)
+			}
+		}
+
+		// Print progress
+		fmt.Printf("  [%d/%d] %s\n", i-start+1, end-start+1, expandedCmd)
+	}
+
+	// Display results if any
+	if len(results) > 0 {
+		fmt.Println()
+		fmt.Println(core.NmapBox("LOOP RESULTS"))
+		for i, result := range results {
+			fmt.Printf("   [%d] %s\n", i, result)
+		}
+		fmt.Println()
+	}
+}
+
+// executePipedCommandsForLoop handles pipes and returns output instead of printing
+func (cli *CLI) executePipedCommandsForLoop(input string) string {
+	parts := strings.Split(input, "|>")
+	if len(parts) < 2 {
+		return ""
+	}
+
+	var result string
+	var err error
+
+	// Execute first command
+	firstCmd := strings.TrimSpace(parts[0])
+	result, err = cli.executePipedCommand(firstCmd, "")
+	if err != nil {
+		return ""
+	}
+
+	// Execute remaining commands, passing output as input
+	for i := 1; i < len(parts); i++ {
+		nextCmd := strings.TrimSpace(parts[i])
+		result, err = cli.executePipedCommand(nextCmd, result)
+		if err != nil {
+			return ""
+		}
+	}
+
+	return result
 }
 
 // executePipedCommands handles piped commands with |> syntax
