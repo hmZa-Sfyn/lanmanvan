@@ -474,6 +474,7 @@ func (cli *CLI) executeBuiltinDirectly(funcName string, argsStr string) string {
 }
 
 // expandBuiltinCall expands a nested builtin call like $(sha256 abc) or $(func(arg))
+// Handles nested calls like $(toupper $(whoami))
 func (cli *CLI) expandBuiltinCall(call string) string {
 	// Handle both $(func args) and $(func(args)) syntax
 	if !strings.HasPrefix(call, "$(") || !strings.HasSuffix(call, ")") {
@@ -481,6 +482,9 @@ func (cli *CLI) expandBuiltinCall(call string) string {
 	}
 
 	innerCall := call[2 : len(call)-1]
+
+	// First, recursively expand any nested $(func ...) calls in the arguments
+	innerCall = cli.expandNestedBuiltins(innerCall)
 
 	// Check if inner call is a function call syntax: func(args)
 	for i, ch := range innerCall {
@@ -514,6 +518,32 @@ func (cli *CLI) expandBuiltinCall(call string) string {
 		return ""
 	}
 	return result
+}
+
+// expandNestedBuiltins expands all $(func ...) patterns in a string
+func (cli *CLI) expandNestedBuiltins(s string) string {
+	for {
+		// Find the first $( pattern
+		idx := strings.Index(s, "$(")
+		if idx == -1 {
+			break
+		}
+
+		// Find the matching closing parenthesis
+		closeIdx := cli.findMatchingParen(s, idx+2)
+		if closeIdx == -1 {
+			break
+		}
+
+		// Extract and expand the builtin call
+		builtinCall := s[idx : closeIdx+1]
+		expanded := cli.expandBuiltinCall(builtinCall)
+
+		// Replace the call with its result
+		s = s[:idx] + expanded + s[closeIdx+1:]
+	}
+
+	return s
 }
 
 // expandVariable expands a variable reference
