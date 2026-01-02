@@ -241,7 +241,7 @@ func (br *BuiltinRegistry) registerAll() {
 	br.register("jsonminify", "Minify JSON", br.cmdJsonMinify)
 	br.register("jsonformat", "Format JSON", br.cmdJsonFormat)
 
-	// File Operations Extended (8)
+	// File Operations Extended (9)
 	br.register("find", "Find files", br.cmdFind)
 	br.register("tail", "Read end of file", br.cmdTail)
 	br.register("head", "Read start of file", br.cmdHead)
@@ -250,6 +250,7 @@ func (br *BuiltinRegistry) registerAll() {
 	br.register("stat", "File statistics", br.cmdStat)
 	br.register("isdir", "Check if directory", br.cmdIsDir)
 	br.register("isfile", "Check if file", br.cmdIsFile)
+	br.register("file", "Write/append to file", br.cmdFile)
 
 	// Date/Time Operations (8)
 	br.register("now", "Current timestamp", br.cmdNow)
@@ -2258,4 +2259,49 @@ func (br *BuiltinRegistry) cmdJsonFormat(args ...string) (string, error) {
 		return "", err
 	}
 	return string(prettyBytes), nil
+}
+
+// ============ FILE I/O FOR PIPES (1) ============
+
+func (br *BuiltinRegistry) cmdFile(args ...string) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("file needs filename and content")
+	}
+
+	filename := args[0]
+	// Expand home directory
+	if strings.HasPrefix(filename, "~/") {
+		home, err := os.UserHomeDir()
+		if err != nil {
+			return "", fmt.Errorf("cannot determine home directory: %v", err)
+		}
+		filename = filepath.Join(home, filename[2:])
+	}
+
+	// Content is the remaining args joined
+	content := ""
+	if len(args) > 1 {
+		content = strings.Join(args[1:], " ")
+	}
+
+	// Create parent directories if needed
+	dir := filepath.Dir(filename)
+	if dir != "." && dir != "" {
+		os.MkdirAll(dir, 0755)
+	}
+
+	// Append to file (create if doesn't exist)
+	f, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return "", fmt.Errorf("cannot open file %s: %v", filename, err)
+	}
+	defer f.Close()
+
+	_, err = f.WriteString(content)
+	if err != nil {
+		return "", fmt.Errorf("cannot write to file %s: %v", filename, err)
+	}
+
+	// Return the content for potential further piping, but don't show it
+	return content, nil
 }

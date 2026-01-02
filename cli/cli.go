@@ -385,6 +385,22 @@ func (cli *CLI) executePipedCommands(input string) {
 func (cli *CLI) executePipedCommand(cmd string, input string) (string, error) {
 	cmd = strings.TrimSpace(cmd)
 
+	// Handle string literals in pipes: "\n", "\t", "text", etc.
+	if (strings.HasPrefix(cmd, "\"") && strings.HasSuffix(cmd, "\"")) ||
+		(strings.HasPrefix(cmd, "'") && strings.HasSuffix(cmd, "'")) {
+		// Remove quotes and process escape sequences
+		literal := cmd[1 : len(cmd)-1]
+
+		// Process escape sequences
+		literal = strings.ReplaceAll(literal, "\\n", "\n")
+		literal = strings.ReplaceAll(literal, "\\t", "\t")
+		literal = strings.ReplaceAll(literal, "\\r", "\r")
+		literal = strings.ReplaceAll(literal, "\\\\", "\\")
+
+		// String literals just pass through, potentially appending to input
+		return input + literal, nil
+	}
+
 	// If input from previous command, inject it appropriately
 	if input != "" {
 		// If command is a builtin function call
