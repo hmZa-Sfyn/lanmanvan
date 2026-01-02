@@ -74,6 +74,13 @@ func (cli *CLI) Start() error {
 
 // ExecuteCommand processes user commands
 func (cli *CLI) ExecuteCommand(input string) {
+	// Handle builtin function calls: funcname(arg1,arg2,arg3)
+	if strings.Contains(input, "(") && strings.Contains(input, ")") && !strings.Contains(input, " ") {
+		if cli.tryExecuteBuiltin(input) {
+			return
+		}
+	}
+
 	// Handle global environment variable syntax (key=value or key=?)
 	if strings.Contains(input, "=") && !strings.Contains(input, " ") {
 		parts := strings.SplitN(input, "=", 2)
@@ -209,4 +216,45 @@ func (cli *CLI) GetHistory() []string {
 // Stop stops the CLI loop
 func (cli *CLI) Stop() {
 	cli.running = false
+}
+
+// tryExecuteBuiltin attempts to execute a builtin function call
+// Syntax: funcname(arg1,arg2,arg3)
+func (cli *CLI) tryExecuteBuiltin(input string) bool {
+	openParen := strings.Index(input, "(")
+	closeParen := strings.LastIndex(input, ")")
+
+	if openParen == -1 || closeParen == -1 || closeParen <= openParen {
+		return false
+	}
+
+	funcName := strings.TrimSpace(input[:openParen])
+	argsStr := input[openParen+1 : closeParen]
+
+	// Check if function exists
+	if _, exists := cli.builtins.functions[funcName]; !exists {
+		return false
+	}
+
+	// Parse arguments (comma-separated)
+	var args []string
+	if argsStr != "" {
+		parts := strings.Split(argsStr, ",")
+		for _, part := range parts {
+			args = append(args, strings.TrimSpace(part))
+		}
+	}
+
+	// Execute builtin
+	result, err := cli.builtins.Execute(funcName, args...)
+
+	fmt.Println()
+	if err != nil {
+		core.PrintError(fmt.Sprintf("Error: %v", err))
+	} else {
+		fmt.Println(result)
+	}
+	fmt.Println()
+
+	return true
 }

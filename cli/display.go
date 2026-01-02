@@ -189,7 +189,7 @@ func (cli *CLI) ListModules() {
 	fmt.Println()
 }
 
-// SearchModules searches modules by keyword
+// SearchModules searches modules by keyword with highlighting
 func (cli *CLI) SearchModules(keyword string) {
 	modules := cli.manager.ListModules()
 	keyword = strings.ToLower(keyword)
@@ -224,16 +224,82 @@ func (cli *CLI) SearchModules(keyword string) {
 		return
 	}
 
+	// Sort results alphabetically by module name
+	sort.Slice(results, func(i, j int) bool {
+		return strings.ToLower(results[i].Name) < strings.ToLower(results[j].Name)
+	})
+
 	fmt.Println()
 	fmt.Println(core.NmapBox(fmt.Sprintf("SEARCH: %s (%d results)", keyword, len(results))))
 
 	for i, module := range results {
-		fmt.Println(cli.formatModuleLine(module, i, len(results)))
+		fmt.Println(cli.formatModuleLineWithHighlight(module, i, len(results), keyword))
 	}
 
 	fmt.Println()
 	core.PrintSuccess(fmt.Sprintf("Found %d module(s)", len(results)))
 	fmt.Println()
+}
+
+// formatModuleLineWithHighlight formats a module line with keyword highlighting
+func (cli *CLI) formatModuleLineWithHighlight(module *core.ModuleConfig, index int, total int, keyword string) string {
+	typeBadge := cli.getTypeBadge(module.Type)
+	desc := ""
+
+	if module.Metadata != nil {
+		desc = module.Metadata.Description
+	}
+
+	prefix := "   ├─ "
+	if index == total-1 {
+		prefix = "   └─ "
+	}
+
+	// Highlight keyword in module name and description
+	highlightedName := cli.highlightKeyword(module.Name, keyword)
+	highlightedDesc := cli.highlightKeyword(desc, keyword)
+
+	return fmt.Sprintf("%s[%s] %s - %s",
+		prefix,
+		typeBadge,
+		highlightedName,
+		highlightedDesc,
+	)
+}
+
+// highlightKeyword highlights a keyword in text with purple background
+func (cli *CLI) highlightKeyword(text, keyword string) string {
+	if keyword == "" {
+		return text
+	}
+
+	// Find all occurrences (case-insensitive)
+	keywordLower := strings.ToLower(keyword)
+	textLower := strings.ToLower(text)
+
+	// Build the highlighted string
+	var result strings.Builder
+	lastIdx := 0
+
+	for {
+		idx := strings.Index(textLower[lastIdx:], keywordLower)
+		if idx == -1 {
+			result.WriteString(text[lastIdx:])
+			break
+		}
+
+		idx += lastIdx
+		// Add text before match
+		result.WriteString(text[lastIdx:idx])
+
+		// Add highlighted match (purple background)
+		match := text[idx : idx+len(keyword)]
+		result.WriteString(color.New(color.BgMagenta, color.FgWhite, color.Bold).Sprint(match))
+
+		lastIdx = idx + len(keyword)
+	}
+
+	return result.String()
 }
 
 // ShowModuleInfo displays detailed module information
