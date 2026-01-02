@@ -3,6 +3,7 @@ package cli
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 
 	"lanmanvan/core"
@@ -75,6 +76,18 @@ func (cli *CLI) Start() error {
 
 // ExecuteCommand processes user commands
 func (cli *CLI) ExecuteCommand(input string) {
+	// Handle for loops: for VAR in START..END -> COMMAND
+	if strings.HasPrefix(input, "for ") && strings.Contains(input, " in ") && strings.Contains(input, " -> ") {
+		cli.executeForLoop(input)
+		return
+	}
+
+	// Handle pipe syntax: cmd1 |> cmd2 |> cmd3
+	if strings.Contains(input, "|>") {
+		cli.executePipedCommands(input)
+		return
+	}
+
 	// Handle builtin function calls: funcname(arg1,arg2,arg3) or func(arg arg2)
 	// Check if it looks like a function call: starts with identifier and has matching parentheses
 	if strings.Contains(input, "(") && strings.Contains(input, ")") {
@@ -225,6 +238,283 @@ func (cli *CLI) GetHistory() []string {
 // Stop stops the CLI loop
 func (cli *CLI) Stop() {
 	cli.running = false
+}
+
+// executeForLoop handles for loop syntax: for VAR in START..END -> COMMAND
+func (cli *CLI) executeForLoop(input string) {
+	// Parse: for VAR in START..END -> COMMAND
+	forIdx := strings.Index(input, "for ")
+	inIdx := strings.Index(input, " in ")
+	arrowIdx := strings.Index(input, " -> ")
+
+	if forIdx == -1 || inIdx == -1 || arrowIdx == -1 {
+		core.PrintError("Invalid for loop syntax. Use: for VAR in 0..256 -> COMMAND")
+		return
+	}
+
+	varName := strings.TrimSpace(input[forIdx+4 : inIdx])
+	rangeStr := strings.TrimSpace(input[inIdx+4 : arrowIdx])
+	command := strings.TrimSpace(input[arrowIdx+4:])
+
+	// Parse range: START..END
+	rangeParts := strings.Split(rangeStr, "..")
+	if len(rangeParts) != 2 {
+		core.PrintError("Invalid range syntax. Use: 0..256")
+		return
+	}
+
+	startStr := strings.TrimSpace(rangeParts[0])
+	endStr := strings.TrimSpace(rangeParts[1])
+
+	start, errStart := strconv.Atoi(startStr)
+	end, errEnd := strconv.Atoi(endStr)
+
+	if errStart != nil || errEnd != nil {
+		core.PrintError("Range must contain valid integers")
+		return
+	}
+
+	fmt.Println()
+	core.PrintInfo(fmt.Sprintf("Executing loop: for %s in %d..%d", varName, start, end))
+	fmt.Println()
+
+	results := []string{}
+	for i := start; i <= end; i++ {
+		// Substitute variable in command
+		expandedCmd := strings.ReplaceAll(command, "$"+varName, fmt.Sprintf("%d", i))
+
+		// Show what we're executing
+		fmt.Printf("  [%d/%d] Executing: %s\n", i-start+1, end-start+1, expandedCmd)
+
+		// Execute the command
+		if strings.Contains(expandedCmd, "|>") {
+			// For pipes, capture output
+			result := cli.executePipedCommandsForLoop(expandedCmd)
+			results = append(results, result)
+		} else if strings.Contains(expandedCmd, "(") && strings.Contains(expandedCmd, ")") {
+			// For builtins, capture output
+			result, err := cli.executeSingleBuiltin(expandedCmd)
+			if err == nil {
+				results = append(results, result)
+			}
+		} else {
+			// For modules, execute normally
+			parts := strings.Fields(expandedCmd)
+			if len(parts) > 0 {
+				cli.ExecuteCommand(expandedCmd)
+			}
+		}
+	}
+
+	// Display results if any were captured
+	if len(results) > 0 {
+		fmt.Println()
+		core.PrintSuccess("Loop Results:")
+		for i, result := range results {
+			fmt.Printf("   [%d] %s\n", i, result)
+		}
+		fmt.Println()
+	}
+}
+
+// executePipedCommandsForLoop handles pipes and returns output instead of printing
+func (cli *CLI) executePipedCommandsForLoop(input string) string {
+	parts := strings.Split(input, "|>")
+	if len(parts) < 2 {
+		return ""
+	}
+
+	var result string
+	var err error
+
+	// Execute first command
+	firstCmd := strings.TrimSpace(parts[0])
+	result, err = cli.executePipedCommand(firstCmd, "")
+	if err != nil {
+		return ""
+	}
+
+	// Execute remaining commands, passing output as input
+	for i := 1; i < len(parts); i++ {
+		nextCmd := strings.TrimSpace(parts[i])
+		result, err = cli.executePipedCommand(nextCmd, result)
+		if err != nil {
+			return ""
+		}
+	}
+
+	return result
+}
+
+// executePipedCommands handles piped commands with |> syntax
+// Example: whoami() |> sha256() or cat(file.txt) |> base64()
+func (cli *CLI) executePipedCommands(input string) {
+	parts := strings.Split(input, "|>")
+	if len(parts) < 2 {
+		return
+	}
+
+	var result string
+	var err error
+
+	// Execute first command
+	firstCmd := strings.TrimSpace(parts[0])
+	result, err = cli.executePipedCommand(firstCmd, "")
+	if err != nil {
+		core.PrintError(fmt.Sprintf("Pipe error in first command: %v", err))
+		return
+	}
+
+	// Execute remaining commands, passing output as input
+	for i := 1; i < len(parts); i++ {
+		nextCmd := strings.TrimSpace(parts[i])
+		result, err = cli.executePipedCommand(nextCmd, result)
+		if err != nil {
+			core.PrintError(fmt.Sprintf("Pipe error at step %d: %v", i+1, err))
+			return
+		}
+	}
+
+	fmt.Println()
+	fmt.Println(result)
+	fmt.Println()
+}
+
+// executePipedCommand executes a single command in a pipe chain
+// Supports: builtin(args), module, module arg=value
+func (cli *CLI) executePipedCommand(cmd string, input string) (string, error) {
+	cmd = strings.TrimSpace(cmd)
+
+	// If input from previous command, inject it appropriately
+	if input != "" {
+		// If command is a builtin function call
+		if strings.Contains(cmd, "(") && strings.Contains(cmd, ")") {
+			openParen := strings.Index(cmd, "(")
+			closeParen := strings.LastIndex(cmd, ")")
+			if openParen > 0 && closeParen > openParen {
+				funcName := cmd[:openParen]
+				args := cmd[openParen+1 : closeParen]
+				if args != "" {
+					args += ", \"" + input + "\""
+				} else {
+					args = "\"" + input + "\""
+				}
+				cmd = funcName + "(" + args + ")"
+			}
+		} else {
+			// It's a module call with potential arguments
+			// Check if there's an argument pattern like: modulename ip=$somevar
+			if strings.Contains(cmd, "=") {
+				// Module with specific arguments - find what argument to inject into
+				// If pattern is "module arg=$var", replace $var with input
+				if strings.Contains(cmd, "$") {
+					// Find the variable and replace it
+					parts := strings.Split(cmd, "=")
+					if len(parts) >= 2 {
+						// Replace the variable value with piped input
+						lastPart := parts[len(parts)-1]
+						if strings.HasPrefix(lastPart, "$") {
+							// Replace the variable
+							varName := strings.TrimSpace(lastPart)
+							cmd = strings.Replace(cmd, varName, "\""+input+"\"", 1)
+						} else {
+							// Append input as new argument
+							cmd = cmd + " input=\"" + input + "\""
+						}
+					}
+				} else {
+					// Append input as new argument
+					cmd = cmd + " input=\"" + input + "\""
+				}
+			} else {
+				// No arguments, just module name
+				cmd = cmd + " input=\"" + input + "\""
+			}
+		}
+	}
+
+	// Try to execute as builtin
+	if strings.Contains(cmd, "(") && strings.Contains(cmd, ")") {
+		openParen := strings.Index(cmd, "(")
+		if openParen > 0 {
+			potentialFunc := cmd[:openParen]
+			if !strings.Contains(potentialFunc, " ") && potentialFunc != "" {
+				return cli.executeSingleBuiltin(cmd)
+			}
+		}
+	}
+
+	// Try to execute as module
+	parts := strings.Fields(cmd)
+	if len(parts) > 0 {
+		moduleName := parts[0]
+		args := parts[1:]
+
+		// Check if module exists
+		if _, err := cli.manager.GetModule(moduleName); err == nil {
+			// Execute module and capture output
+			return cli.executeModuleForPipe(moduleName, args)
+		}
+	}
+
+	return "", fmt.Errorf("invalid pipe command: %s", cmd)
+}
+
+// executeModuleForPipe executes a module and returns its output
+func (cli *CLI) executeModuleForPipe(moduleName string, args []string) (string, error) {
+	_, err := cli.manager.GetModule(moduleName)
+	if err != nil {
+		return "", err
+	}
+
+	// Parse arguments with support for variable expansion
+	moduleArgs := make(map[string]string)
+	parsedArgs := cli.parseArguments(args)
+
+	for key, value := range parsedArgs {
+		switch key {
+		case "threads", "save":
+			// Skip these
+		default:
+			moduleArgs[key] = value
+		}
+	}
+
+	// Merge global environment variables
+	for key, value := range cli.envMgr.GetAll() {
+		if _, exists := moduleArgs[key]; !exists {
+			moduleArgs[key] = value
+		}
+	}
+
+	// Execute module
+	result, err := cli.manager.ExecuteModule(moduleName, moduleArgs)
+	if err != nil {
+		return "", err
+	}
+
+	// Return output
+	return strings.TrimSpace(result.Output), nil
+}
+
+// executeSingleBuiltin executes a builtin and returns output
+func (cli *CLI) executeSingleBuiltin(input string) (string, error) {
+	openParen := strings.Index(input, "(")
+	if openParen == -1 {
+		return "", fmt.Errorf("invalid function syntax")
+	}
+
+	funcName := strings.TrimSpace(input[:openParen])
+	closeParen := strings.LastIndex(input, ")")
+	if closeParen == -1 {
+		return "", fmt.Errorf("missing closing parenthesis")
+	}
+
+	argsStr := input[openParen+1 : closeParen]
+	args := cli.parseAdvancedArguments(argsStr)
+
+	result, err := cli.builtins.Execute(funcName, args...)
+	return result, err
 }
 
 // tryExecuteBuiltin attempts to execute a builtin function call
@@ -474,6 +764,7 @@ func (cli *CLI) executeBuiltinDirectly(funcName string, argsStr string) string {
 }
 
 // expandBuiltinCall expands a nested builtin call like $(sha256 abc) or $(func(arg))
+// Handles nested calls like $(toupper $(whoami))
 func (cli *CLI) expandBuiltinCall(call string) string {
 	// Handle both $(func args) and $(func(args)) syntax
 	if !strings.HasPrefix(call, "$(") || !strings.HasSuffix(call, ")") {
@@ -481,6 +772,9 @@ func (cli *CLI) expandBuiltinCall(call string) string {
 	}
 
 	innerCall := call[2 : len(call)-1]
+
+	// First, recursively expand any nested $(func ...) calls in the arguments
+	innerCall = cli.expandNestedBuiltins(innerCall)
 
 	// Check if inner call is a function call syntax: func(args)
 	for i, ch := range innerCall {
@@ -514,6 +808,32 @@ func (cli *CLI) expandBuiltinCall(call string) string {
 		return ""
 	}
 	return result
+}
+
+// expandNestedBuiltins expands all $(func ...) patterns in a string
+func (cli *CLI) expandNestedBuiltins(s string) string {
+	for {
+		// Find the first $( pattern
+		idx := strings.Index(s, "$(")
+		if idx == -1 {
+			break
+		}
+
+		// Find the matching closing parenthesis
+		closeIdx := cli.findMatchingParen(s, idx+2)
+		if closeIdx == -1 {
+			break
+		}
+
+		// Extract and expand the builtin call
+		builtinCall := s[idx : closeIdx+1]
+		expanded := cli.expandBuiltinCall(builtinCall)
+
+		// Replace the call with its result
+		s = s[:idx] + expanded + s[closeIdx+1:]
+	}
+
+	return s
 }
 
 // expandVariable expands a variable reference
