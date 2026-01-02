@@ -275,13 +275,16 @@ func (cli *CLI) executeForLoop(input string) {
 	}
 
 	fmt.Println()
-	core.PrintInfo(fmt.Sprintf("Executing for loop: %s in %d..%d", varName, start, end))
+	core.PrintInfo(fmt.Sprintf("Executing loop: for %s in %d..%d", varName, start, end))
 	fmt.Println()
 
 	results := []string{}
 	for i := start; i <= end; i++ {
 		// Substitute variable in command
 		expandedCmd := strings.ReplaceAll(command, "$"+varName, fmt.Sprintf("%d", i))
+
+		// Show what we're executing
+		fmt.Printf("  [%d/%d] Executing: %s\n", i-start+1, end-start+1, expandedCmd)
 
 		// Execute the command
 		if strings.Contains(expandedCmd, "|>") {
@@ -301,15 +304,12 @@ func (cli *CLI) executeForLoop(input string) {
 				cli.ExecuteCommand(expandedCmd)
 			}
 		}
-
-		// Print progress
-		fmt.Printf("  [%d/%d] %s\n", i-start+1, end-start+1, expandedCmd)
 	}
 
-	// Display results if any
+	// Display results if any were captured
 	if len(results) > 0 {
 		fmt.Println()
-		fmt.Println(core.NmapBox("LOOP RESULTS"))
+		core.PrintSuccess("Loop Results:")
 		for i, result := range results {
 			fmt.Printf("   [%d] %s\n", i, result)
 		}
@@ -381,13 +381,14 @@ func (cli *CLI) executePipedCommands(input string) {
 }
 
 // executePipedCommand executes a single command in a pipe chain
+// Supports: builtin(args), module, module arg=value
 func (cli *CLI) executePipedCommand(cmd string, input string) (string, error) {
 	cmd = strings.TrimSpace(cmd)
 
-	// If input from previous command, inject it as first argument
+	// If input from previous command, inject it appropriately
 	if input != "" {
-		// If command is a builtin function call, append input as argument
-		if strings.Contains(cmd, "(") {
+		// If command is a builtin function call
+		if strings.Contains(cmd, "(") && strings.Contains(cmd, ")") {
 			openParen := strings.Index(cmd, "(")
 			closeParen := strings.LastIndex(cmd, ")")
 			if openParen > 0 && closeParen > openParen {
@@ -401,18 +402,39 @@ func (cli *CLI) executePipedCommand(cmd string, input string) (string, error) {
 				cmd = funcName + "(" + args + ")"
 			}
 		} else {
-			// It's a module call, append input as first argument
-			// Format: modulename arg=value
-			if !strings.Contains(cmd, "=") {
-				cmd = cmd + " input=" + input
+			// It's a module call with potential arguments
+			// Check if there's an argument pattern like: modulename ip=$somevar
+			if strings.Contains(cmd, "=") {
+				// Module with specific arguments - find what argument to inject into
+				// If pattern is "module arg=$var", replace $var with input
+				if strings.Contains(cmd, "$") {
+					// Find the variable and replace it
+					parts := strings.Split(cmd, "=")
+					if len(parts) >= 2 {
+						// Replace the variable value with piped input
+						lastPart := parts[len(parts)-1]
+						if strings.HasPrefix(lastPart, "$") {
+							// Replace the variable
+							varName := strings.TrimSpace(lastPart)
+							cmd = strings.Replace(cmd, varName, "\""+input+"\"", 1)
+						} else {
+							// Append input as new argument
+							cmd = cmd + " input=\"" + input + "\""
+						}
+					}
+				} else {
+					// Append input as new argument
+					cmd = cmd + " input=\"" + input + "\""
+				}
 			} else {
-				cmd = cmd + " input=" + input
+				// No arguments, just module name
+				cmd = cmd + " input=\"" + input + "\""
 			}
 		}
 	}
 
 	// Try to execute as builtin
-	if strings.Contains(cmd, "(") {
+	if strings.Contains(cmd, "(") && strings.Contains(cmd, ")") {
 		openParen := strings.Index(cmd, "(")
 		if openParen > 0 {
 			potentialFunc := cmd[:openParen]
