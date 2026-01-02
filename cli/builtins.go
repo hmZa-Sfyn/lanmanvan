@@ -236,6 +236,11 @@ func (br *BuiltinRegistry) registerAll() {
 	br.register("percent_encode", "Percent encoding", br.cmdPercentEncode)
 	br.register("htmlescape", "HTML escape", br.cmdHtmlEscape)
 
+	// JSON/Data Processing (3)
+	br.register("jsonpretty", "Pretty print JSON", br.cmdJsonPretty)
+	br.register("jsonminify", "Minify JSON", br.cmdJsonMinify)
+	br.register("jsonformat", "Format JSON", br.cmdJsonFormat)
+
 	// File Operations Extended (8)
 	br.register("find", "Find files", br.cmdFind)
 	br.register("tail", "Read end of file", br.cmdTail)
@@ -2203,4 +2208,54 @@ func (br *BuiltinRegistry) cmdFactorial(args ...string) (string, error) {
 		result *= i
 	}
 	return fmt.Sprintf("%d", result), nil
+}
+
+// ============ JSON/DATA PROCESSING (3) ============
+
+func (br *BuiltinRegistry) cmdJsonPretty(args ...string) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("jsonpretty needs json data")
+	}
+	var obj interface{}
+	err := json.Unmarshal([]byte(args[0]), &obj)
+	if err != nil {
+		return "", fmt.Errorf("invalid json: %v", err)
+	}
+	prettyBytes, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(prettyBytes), nil
+}
+
+func (br *BuiltinRegistry) cmdJsonMinify(args ...string) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("jsonminify needs json data")
+	}
+	var obj interface{}
+	err := json.Unmarshal([]byte(args[0]), &obj)
+	if err != nil {
+		return "", fmt.Errorf("invalid json: %v", err)
+	}
+	minified, err := json.Marshal(obj)
+	if err != nil {
+		return "", err
+	}
+	return string(minified), nil
+}
+
+func (br *BuiltinRegistry) cmdJsonFormat(args ...string) (string, error) {
+	if len(args) == 0 {
+		return "", fmt.Errorf("jsonformat needs json data")
+	}
+	var obj interface{}
+	err := json.Unmarshal([]byte(args[0]), &obj)
+	if err != nil {
+		return "", fmt.Errorf("invalid json: %v", err)
+	}
+	prettyBytes, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		return "", err
+	}
+	return string(prettyBytes), nil
 }

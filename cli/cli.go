@@ -75,6 +75,12 @@ func (cli *CLI) Start() error {
 
 // ExecuteCommand processes user commands
 func (cli *CLI) ExecuteCommand(input string) {
+	// Handle pipe syntax: cmd1 |> cmd2 |> cmd3
+	if strings.Contains(input, "|>") {
+		cli.executePipedCommands(input)
+		return
+	}
+
 	// Handle builtin function calls: funcname(arg1,arg2,arg3) or func(arg arg2)
 	// Check if it looks like a function call: starts with identifier and has matching parentheses
 	if strings.Contains(input, "(") && strings.Contains(input, ")") {
@@ -225,6 +231,97 @@ func (cli *CLI) GetHistory() []string {
 // Stop stops the CLI loop
 func (cli *CLI) Stop() {
 	cli.running = false
+}
+
+// executePipedCommands handles piped commands with |> syntax
+// Example: whoami() |> sha256() or cat(file.txt) |> base64()
+func (cli *CLI) executePipedCommands(input string) {
+	parts := strings.Split(input, "|>")
+	if len(parts) < 2 {
+		return
+	}
+
+	var result string
+	var err error
+
+	// Execute first command
+	firstCmd := strings.TrimSpace(parts[0])
+	result, err = cli.executePipedCommand(firstCmd, "")
+	if err != nil {
+		core.PrintError(fmt.Sprintf("Pipe error in first command: %v", err))
+		return
+	}
+
+	// Execute remaining commands, passing output as input
+	for i := 1; i < len(parts); i++ {
+		nextCmd := strings.TrimSpace(parts[i])
+		result, err = cli.executePipedCommand(nextCmd, result)
+		if err != nil {
+			core.PrintError(fmt.Sprintf("Pipe error at step %d: %v", i+1, err))
+			return
+		}
+	}
+
+	fmt.Println()
+	fmt.Println(result)
+	fmt.Println()
+}
+
+// executePipedCommand executes a single command in a pipe chain
+func (cli *CLI) executePipedCommand(cmd string, input string) (string, error) {
+	cmd = strings.TrimSpace(cmd)
+
+	// If input from previous command, inject it
+	if input != "" {
+		// If command is a builtin function call, append input as argument
+		if strings.Contains(cmd, "(") {
+			openParen := strings.Index(cmd, "(")
+			closeParen := strings.LastIndex(cmd, ")")
+			if openParen > 0 && closeParen > openParen {
+				funcName := cmd[:openParen]
+				args := cmd[openParen+1 : closeParen]
+				if args != "" {
+					args += ", \"" + input + "\""
+				} else {
+					args = "\"" + input + "\""
+				}
+				cmd = funcName + "(" + args + ")"
+			}
+		}
+	}
+
+	// Try to execute as builtin
+	if strings.Contains(cmd, "(") {
+		openParen := strings.Index(cmd, "(")
+		if openParen > 0 {
+			potentialFunc := cmd[:openParen]
+			if !strings.Contains(potentialFunc, " ") && potentialFunc != "" {
+				return cli.executeSingleBuiltin(cmd)
+			}
+		}
+	}
+
+	return "", fmt.Errorf("invalid pipe command: %s", cmd)
+}
+
+// executeSingleBuiltin executes a builtin and returns output
+func (cli *CLI) executeSingleBuiltin(input string) (string, error) {
+	openParen := strings.Index(input, "(")
+	if openParen == -1 {
+		return "", fmt.Errorf("invalid function syntax")
+	}
+
+	funcName := strings.TrimSpace(input[:openParen])
+	closeParen := strings.LastIndex(input, ")")
+	if closeParen == -1 {
+		return "", fmt.Errorf("missing closing parenthesis")
+	}
+
+	argsStr := input[openParen+1 : closeParen]
+	args := cli.parseAdvancedArguments(argsStr)
+
+	result, err := cli.builtins.Execute(funcName, args...)
+	return result, err
 }
 
 // tryExecuteBuiltin attempts to execute a builtin function call
