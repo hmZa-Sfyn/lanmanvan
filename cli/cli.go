@@ -75,10 +75,18 @@ func (cli *CLI) Start() error {
 
 // ExecuteCommand processes user commands
 func (cli *CLI) ExecuteCommand(input string) {
-	// Handle builtin function calls: funcname(arg1,arg2,arg3)
-	if strings.Contains(input, "(") && strings.Contains(input, ")") && !strings.Contains(input, " ") {
-		if cli.tryExecuteBuiltin(input) {
-			return
+	// Handle builtin function calls: funcname(arg1,arg2,arg3) or func(arg arg2)
+	// Check if it looks like a function call: starts with identifier and has matching parentheses
+	if strings.Contains(input, "(") && strings.Contains(input, ")") {
+		openParen := strings.Index(input, "(")
+		if openParen > 0 {
+			potentialFunc := input[:openParen]
+			// Check if the part before parenthesis is a valid identifier (no spaces)
+			if !strings.Contains(potentialFunc, " ") && potentialFunc != "" {
+				if cli.tryExecuteBuiltin(input) {
+					return
+				}
+			}
 		}
 	}
 
@@ -222,24 +230,45 @@ func (cli *CLI) Stop() {
 // tryExecuteBuiltin attempts to execute a builtin function call
 // Syntax: funcname(arg1, arg2, arg3) with support for:
 // - Quoted strings: "hello world", 'single quotes'
-// - Nested builtins: $(builtin_name args)
+// - Nested builtins: $(builtin_name args) or builtin_name()
 // - Variable expansion: $varname
-// - Operators: + - * / %
+// - Space-separated arguments
 func (cli *CLI) tryExecuteBuiltin(input string) bool {
 	openParen := strings.Index(input, "(")
-	closeParen := strings.LastIndex(input, ")")
-
-	if openParen == -1 || closeParen == -1 || closeParen <= openParen {
+	if openParen == -1 {
 		return false
 	}
 
 	funcName := strings.TrimSpace(input[:openParen])
-	argsStr := input[openParen+1 : closeParen]
+
+	// Verify funcName is a valid identifier
+	if funcName == "" {
+		return false
+	}
+	for _, ch := range funcName {
+		if !isValidVarChar(ch) {
+			return false
+		}
+	}
 
 	// Check if function exists
 	if _, exists := cli.builtins.functions[funcName]; !exists {
 		return false
 	}
+
+	// Find the matching closing parenthesis
+	closeParen := cli.findMatchingParen(input, openParen+1)
+	if closeParen == -1 {
+		return false
+	}
+
+	// Make sure there's nothing after the closing paren (except whitespace)
+	afterParen := strings.TrimSpace(input[closeParen+1:])
+	if afterParen != "" {
+		return false
+	}
+
+	argsStr := input[openParen+1 : closeParen]
 
 	// Parse arguments with proper handling of quotes, builtins, and variables
 	args := cli.parseAdvancedArguments(argsStr)
@@ -260,9 +289,9 @@ func (cli *CLI) tryExecuteBuiltin(input string) bool {
 
 // parseAdvancedArguments parses function arguments with support for:
 // - Quoted strings (both "..." and '...')
-// - Nested builtins $(builtin args)
+// - Nested builtins $(builtin args) and builtin() function call syntax
 // - Variable expansion $var
-// - Operators as separate tokens
+// - Space-separated arguments
 func (cli *CLI) parseAdvancedArguments(argsStr string) []string {
 	var args []string
 	var currentArg strings.Builder
@@ -291,14 +320,44 @@ func (cli *CLI) parseAdvancedArguments(argsStr string) []string {
 
 		// Handle nested builtins: $(builtin args)
 		if ch == '$' && i+1 < len(argsStr) && argsStr[i+1] == '(' {
-			closeParen := strings.Index(argsStr[i+2:], ")")
+			closeParen := cli.findMatchingParen(argsStr, i+2)
 			if closeParen != -1 {
-				nestedCall := argsStr[i : i+closeParen+3]
+				nestedCall := argsStr[i : closeParen+1]
 				expanded := cli.expandBuiltinCall(nestedCall)
 				currentArg.WriteString(expanded)
-				i += closeParen + 3
+				i = closeParen + 1
 				continue
 			}
+		}
+
+		// Handle builtin function calls: funcname()
+		if isValidVarChar(rune(ch)) {
+			// Collect identifier
+			ident := cli.collectIdentifier(argsStr, &i)
+			if i < len(argsStr) && argsStr[i] == '(' {
+				// This is a function call
+				closeParen := cli.findMatchingParen(argsStr, i+1)
+				if closeParen != -1 {
+					// Get the arguments inside parentheses
+					innerArgs := argsStr[i+1 : closeParen]
+					// Check if this is a known builtin
+					if _, exists := cli.builtins.functions[ident]; exists {
+						// Recursively parse the inner arguments
+						expanded := cli.executeBuiltinDirectly(ident, innerArgs)
+						currentArg.WriteString(expanded)
+						i = closeParen + 1
+						continue
+					} else {
+						// Not a builtin, treat as part of argument
+						currentArg.WriteString(ident)
+						currentArg.WriteByte('(')
+						continue
+					}
+				}
+			}
+			// Not a function call, just add the identifier
+			currentArg.WriteString(ident)
+			continue
 		}
 
 		// Handle variable expansion: $varname
@@ -325,8 +384,13 @@ func (cli *CLI) parseAdvancedArguments(argsStr string) []string {
 			continue
 		}
 
-		// Handle spaces (but preserve in quoted strings)
+		// Handle spaces (space-separated arguments)
 		if ch == ' ' {
+			arg := strings.TrimSpace(currentArg.String())
+			if arg != "" {
+				args = append(args, arg)
+			}
+			currentArg.Reset()
 			i++
 			continue
 		}
@@ -349,14 +413,91 @@ func isValidVarChar(r rune) bool {
 	return (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '_'
 }
 
-// expandBuiltinCall expands a nested builtin call like $(sha256 abc)
+// collectIdentifier extracts an identifier starting at position i
+func (cli *CLI) collectIdentifier(s string, i *int) string {
+	var ident strings.Builder
+	for *i < len(s) && isValidVarChar(rune(s[*i])) {
+		ident.WriteByte(s[*i])
+		*i++
+	}
+	return ident.String()
+}
+
+// findMatchingParen finds the index of the closing parenthesis that matches
+// the opening parenthesis at startIdx
+func (cli *CLI) findMatchingParen(s string, startIdx int) int {
+	depth := 1
+	i := startIdx
+	inQuote := false
+	quoteChar := byte(0)
+
+	for i < len(s) && depth > 0 {
+		ch := s[i]
+
+		// Handle quotes
+		if (ch == '"' || ch == '\'') && (i == 0 || s[i-1] != '\\') {
+			if !inQuote {
+				inQuote = true
+				quoteChar = ch
+			} else if ch == quoteChar {
+				inQuote = false
+			}
+		}
+
+		// Handle parentheses (only outside quotes)
+		if !inQuote {
+			if ch == '(' {
+				depth++
+			} else if ch == ')' {
+				depth--
+				if depth == 0 {
+					return i
+				}
+			}
+		}
+
+		i++
+	}
+
+	return -1 // Not found
+}
+
+// executeBuiltinDirectly executes a builtin function with raw argument string
+func (cli *CLI) executeBuiltinDirectly(funcName string, argsStr string) string {
+	// Recursively parse the inner arguments to handle nested calls
+	args := cli.parseAdvancedArguments(argsStr)
+	result, err := cli.builtins.Execute(funcName, args...)
+	if err != nil {
+		return ""
+	}
+	return result
+}
+
+// expandBuiltinCall expands a nested builtin call like $(sha256 abc) or $(func(arg))
 func (cli *CLI) expandBuiltinCall(call string) string {
-	// Remove $( and )
+	// Handle both $(func args) and $(func(args)) syntax
 	if !strings.HasPrefix(call, "$(") || !strings.HasSuffix(call, ")") {
 		return call
 	}
 
 	innerCall := call[2 : len(call)-1]
+
+	// Check if inner call is a function call syntax: func(args)
+	for i, ch := range innerCall {
+		if ch == '(' {
+			funcName := innerCall[:i]
+			if _, exists := cli.builtins.functions[funcName]; exists {
+				// This is a function call like sha256(abc)
+				return cli.executeBuiltinDirectly(funcName, innerCall[i+1:len(innerCall)-1])
+			}
+			break
+		}
+		if !isValidVarChar(ch) && ch != '_' {
+			break
+		}
+	}
+
+	// Otherwise, treat as space-separated: func arg1 arg2...
 	parts := strings.Fields(innerCall)
 	if len(parts) == 0 {
 		return ""
