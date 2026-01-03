@@ -609,7 +609,7 @@ func (cli *CLI) PrintBuiltins(keyword string) {
 						}
 					}
 				}
-				fmt.Println()
+				//fmt.Println()
 			}
 		}
 		printQuickReference()
