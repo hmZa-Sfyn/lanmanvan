@@ -12,9 +12,13 @@ import (
 func main() {
 	var modulesDir string
 	var version bool
+	var exec string
+	var console bool
 
 	flag.StringVar(&modulesDir, "modules", "./modules", "Path to modules directory")
 	flag.BoolVar(&version, "version", false, "Show version")
+	flag.StringVar(&exec, "exec", "", "Execute a command without starting the interactive shell")
+	flag.BoolVar(&console, "console", false, "Start the interactive console")
 	flag.Parse()
 
 	if version {
@@ -39,10 +43,28 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Create and start CLI
-	cliInstance := cli.NewCLI(absPath)
-	if err := cliInstance.Start(); err != nil {
-		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
-		os.Exit(1)
+	//exec a command and exit
+	if exec != "" {
+		cliInstance := cli.NewCLI(absPath)
+
+		// This executes the command and sets running = false so the loop exits after one command
+		cliInstance.ExecuteCommandAndExit(exec)
+
+		// Always start the CLI — it will either run interactively or exit immediately
+		if err := cliInstance.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
+		// Start() returns only after the loop ends cleanly
+		os.Exit(0)
+	}
+
+	if console != false {
+		// Create and start CLI
+		cliInstance := cli.NewCLI(absPath)
+		if err := cliInstance.Start(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+			os.Exit(1)
+		}
 	}
 }

@@ -74,6 +74,23 @@ func (cli *CLI) Start() error {
 	return nil
 }
 
+// ExecuteCommandAndExit executes a single command (e.g., from -c flag or automation)
+// and then cleanly terminates the CLI loop.
+func (cli *CLI) ExecuteCommandAndExit(input string) {
+	input = strings.TrimSpace(input)
+	if input == "" {
+		cli.running = false
+		return
+	}
+
+	// Mirror interactive loop behavior for consistency
+	cli.history = append(cli.history, input)
+	cli.ExecuteCommand(input)
+
+	// Signal the main loop to exit
+	cli.running = false
+}
+
 // ExecuteCommand processes user commands
 func (cli *CLI) ExecuteCommand(input string) {
 	// Handle for loops: for VAR in START..END -> COMMAND

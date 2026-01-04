@@ -694,7 +694,7 @@ func (cli *CLI) PrintBuiltins(keyword string) {
 	}
 
 	if !isCategorySearch && normalizedKeyword != "" {
-		fmt.Println(color.CyanString("   Tip: Use #category (e.g., #Strings) to show full category"))
+		fmt.Println(color.CyanString("\n   Tip: Use #category (e.g., #Strings) to show full category"))
 		fmt.Println()
 	}
 
@@ -702,7 +702,7 @@ func (cli *CLI) PrintBuiltins(keyword string) {
 }
 
 func printQuickReference() {
-	fmt.Println("   " + color.CyanString("═ Quick Reference ═"))
+	fmt.Println("\n   " + color.CyanString("═ Quick Reference ═"))
 	fmt.Println("   ├─ Call syntax:   " + color.YellowString("funcname(arg1, arg2, ...)"))
 	fmt.Println("   ├─ In module arg: " + color.YellowString("run module target=$(hostname)"))
 	fmt.Println("   ├─ Nested calls:  " + color.YellowString("echo($(sha256 password))"))
