@@ -196,7 +196,11 @@ func (cli *CLI) ExecuteCommand(input string) {
 	case "env", "envs":
 		cli.envMgr.Display()
 	case "builtins":
-		cli.PrintBuiltins()
+		if len(args) > 0 {
+			cli.PrintBuiltins(strings.Join(args, " "))
+		} else {
+			cli.PrintBuiltins("")
+		}
 	case "search":
 		if len(args) > 0 {
 			cli.SearchModules(strings.Join(args, " "))

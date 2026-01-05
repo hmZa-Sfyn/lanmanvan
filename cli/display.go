@@ -33,6 +33,7 @@ func (cli *CLI) PrintHelp() {
 		{"<module> arg_key = value", "Format with spaces (alternative), example: network ip = 192.168.1.1"},
 		{"env, envs", "Show all global environment variables, aliases: envs"},
 		{"builtins", "Show all 30+ builtin functions with examples"},
+		{"builtins <search>", "Show search matched builtin functions"},
 		{"key=value", "Set global environment variable (persistent), example: timeout=10"},
 		{"key=?", "View global environment variable value, example: timeout=?"},
 		{"create <name> [type]", "Create a new module (python/bash), example: create mymodule python"},
@@ -476,7 +477,7 @@ func (cli *CLI) PrintHistory() {
 }
 
 // PrintBuiltins prints all available builtin functions with detailed info
-func (cli *CLI) PrintBuiltins() {
+func (cli *CLI) PrintBuiltins(search__ string) {
 	fmt.Println()
 	fmt.Println(core.NmapBox("BUILTIN FUNCTIONS (60+) - DETAILED REFERENCE"))
 	fmt.Println()
@@ -519,6 +520,8 @@ func (cli *CLI) PrintBuiltins() {
 			categories["Utilities"] = append(categories["Utilities"], fn)
 		}
 	}
+
+	//match the builtins by their name and show them in purple background like metasploit does!
 
 	// Display by category with detailed info
 	for _, category := range []string{"File System", "System", "Hashing", "Encoding", "Strings", "Network Validation", "Network", "Math", "Utilities"} {
@@ -571,10 +574,10 @@ func (cli *CLI) PrintBuiltins() {
 						fmt.Printf("%s%s\n", examplePrefix, color.MagentaString(example))
 					}
 					// Add extra space after examples
-					fmt.Println()
+					//fmt.Println()
 				}
 
-				if !isLast {
+				if isLast {
 					fmt.Println()
 				}
 			}
@@ -582,7 +585,7 @@ func (cli *CLI) PrintBuiltins() {
 		fmt.Println()
 	}
 
-	fmt.Println("   " + color.CyanString("═ Quick Reference ═"))
+	fmt.Println("\n   " + color.CyanString("═ Quick Reference ═"))
 	fmt.Println("   ├─ Call syntax:   " + color.YellowString("funcname(arg1, arg2, ...)"))
 	fmt.Println("   ├─ In module arg: " + color.YellowString("run module target=$(hostname)"))
 	fmt.Println("   ├─ Nested calls:  " + color.YellowString("echo($(sha256 password))"))
