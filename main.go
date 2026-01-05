@@ -12,15 +12,7 @@ import (
 func main() {
 	var modulesDir string
 	var version bool
-	var exec string
-	var console bool
 
-<<<<<<< HEAD
-	flag.StringVar(&modulesDir, "modules", "./modules", "Path to modules directory")
-	flag.BoolVar(&version, "version", false, "Show version")
-	flag.StringVar(&exec, "exec", "", "Execute a command without starting the interactive shell")
-	flag.BoolVar(&console, "console", false, "Start the interactive console")
-=======
 	var exec bool
 	var exec_cmd string
 
@@ -34,7 +26,6 @@ func main() {
 
 	flag.BoolVar(&show_banner, "banner", false, "Want to show the *lanmanvan* official banner? (bool)")
 
->>>>>>> eso-2
 	flag.Parse()
 
 	if version {
