@@ -732,6 +732,7 @@ func (cli *CLI) PrintBuiltins(keyword string) {
 
 func printQuickReference() {
 	fmt.Println("\n   " + color.CyanString("═ Quick Reference ═"))
+	fmt.Println("   ├─ categories are: File System, System, Hashing, Encoding, Strings, Network Validation, Network, Math, Utilities")
 	fmt.Println("   ├─ Call syntax:   " + color.YellowString("funcname(arg1, arg2, ...)"))
 	fmt.Println("   ├─ In module arg: " + color.YellowString("run module target=$(hostname)"))
 	fmt.Println("   ├─ Nested calls:  " + color.YellowString("echo($(sha256 password))"))
