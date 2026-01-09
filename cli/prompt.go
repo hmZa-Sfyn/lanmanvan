@@ -41,7 +41,7 @@ _  / _  / / / / /_ |/ /
 	}
 
 	// Pick random banner
-	banner := banners[2]
+	banner := banners[0]
 
 	fmt.Println()
 	color.New(color.FgCyan, color.Bold).Println(banner)
