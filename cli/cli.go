@@ -129,7 +129,7 @@ func (cli *CLI) ExecuteCommand(input string) {
 
 	// Handle builtin function calls: funcname(arg1,arg2,arg3) or func(arg arg2)
 	// Check if it looks like a function call: starts with identifier and has matching parentheses
-	if strings.Contains(input, "(") && strings.Contains(input, ")") {
+	/*if strings.Contains(input, "(") && strings.Contains(input, ")") {
 		openParen := strings.Index(input, "(")
 		if openParen > 0 {
 			potentialFunc := input[:openParen]
@@ -140,7 +140,7 @@ func (cli *CLI) ExecuteCommand(input string) {
 				}
 			}
 		}
-	}
+	}*/
 
 	// Handle global environment variable syntax (key=value or key=?)
 	if strings.Contains(input, "=") && !strings.Contains(input, " ") {
@@ -196,11 +196,12 @@ func (cli *CLI) ExecuteCommand(input string) {
 	case "env", "envs":
 		cli.envMgr.Display()
 	case "builtins":
-		if len(args) > 0 {
+		core.PrintWarning("We are not serving builtins anymore, they were headache! this message will be completely removed in next version!")
+		/*if len(args) > 0 {
 			cli.PrintBuiltins(strings.Join(args, " "))
 		} else {
 			cli.PrintBuiltins("")
-		}
+		}*/
 	case "search":
 		if len(args) > 0 {
 			cli.SearchModules(strings.Join(args, " "))
