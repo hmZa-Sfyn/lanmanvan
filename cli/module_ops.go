@@ -473,42 +473,13 @@ func (cli *CLI) parseArguments(args []string) map[string]string {
 // expandValue expands variables and builtin function calls in a value
 // Supports: $varname, $(builtin_func arg1 arg2)
 func (cli *CLI) expandValue(value string) string {
-	// First, handle builtin function calls: $(func arg1 arg2)
-	value = cli.expandBuiltins(value)
-
+	
 	// Then, handle variable expansion: $variable_name
 	value = cli.expandVariables(value)
 
 	return value
 }
 
-// expandBuiltins expands builtin function calls in $(func args) format
-func (cli *CLI) expandBuiltins(value string) string {
-	// Pattern: $(builtin_name arg1 arg2 ...)
-	builtinPattern := regexp.MustCompile(`\$\(([^)]+)\)`)
-
-	return builtinPattern.ReplaceAllStringFunc(value, func(match string) string {
-		// Extract content between $( and )
-		content := match[2 : len(match)-1]
-		parts := strings.Fields(content)
-
-		if len(parts) == 0 {
-			return match // Return original if empty
-		}
-
-		funcName := parts[0]
-		funcArgs := parts[1:]
-
-		// Execute builtin function
-		result, err := cli.builtins.Execute(funcName, funcArgs...)
-		if err != nil {
-			core.PrintWarning(fmt.Sprintf("Builtin function '%s' error: %v", funcName, err))
-			return match
-		}
-
-		return result
-	})
-}
 
 // expandVariables expands $variable_name references
 func (cli *CLI) expandVariables(value string) string {

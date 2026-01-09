@@ -143,6 +143,7 @@ add_or_update_alias() {
 for rc in "$HOME/.zshrc" "$HOME/.bashrc" "$HOME/.bash_profile" "$HOME/.zprofile"; do
     [ -f "$rc" ] || continue
     add_or_update_alias "$rc" "lanmanvan" "lanmanvan -modules $MODULES_DEST"
+    add_or_update_alias "$rc" "lmv" "lanmanvan -modules $MODULES_DEST"
     add_or_update_alias "$rc" "lmvconsole" "lanmanvan -modules $MODULES_DEST"
     add_or_update_alias "$rc" "lmv_update" \
         "cd /tmp && rm -rf lanmanvan && git clone https://github.com/hmZa-Sfyn/lanmanvan && cd lanmanvan && chmod +x setup.sh && ./setup.sh"
