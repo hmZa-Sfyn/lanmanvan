@@ -238,13 +238,7 @@ func (cli *CLI) ExecuteCommand(input string) {
 		}
 	}
 
-	// 4. Pipes |>
-	if strings.Contains(input, "|>") {
-		cli.executePipedCommands(input)
-		return
-	}
-
-	// 5. Environment variable set/view (key=value or key=?)
+	// env var set / view
 	if strings.Contains(input, "=") && !strings.Contains(input, " ") {
 		parts := strings.SplitN(input, "=", 2)
 		if len(parts) == 2 {
