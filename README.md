@@ -1,5 +1,12 @@
 # LanManVan Framework
 
+# this project is continued here: https://github.com/Lanmanvan-Org/lmv-suite-ng
+# [lmv-suite-ng](https://github.com/Lanmanvan-Org/lmv-suite-ng)
+
+---
+
+## old, v1.5: new is here: https://github.com/Lanmanvan-Org/lmv-suite-ng
+
 LanManVan is a **Metasploit-like framework** built in Go, designed to make it easy to create, manage, and execute modules. The framework supports modules written in **Python3** and **Bash**, allowing you to create powerful security tools with minimal effort.
 
 ### Partly VibeCoded: 65% Human written code, 35% AI!
