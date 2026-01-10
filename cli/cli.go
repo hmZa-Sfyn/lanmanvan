@@ -3,31 +3,37 @@ package cli
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
 	"lanmanvan/core"
 )
 
+type TEMP_Module struct {
+	Name string
+	Path string
+	Type string // "python", "bash", etc
+}
+
 // CLI manages the interactive command-line interface
 type CLI struct {
-	manager  *core.ModuleManager
-	running  bool
-	history  []string
-	envMgr   *EnvironmentManager
-	logger   *Logger
-	
+	manager     *core.ModuleManager
+	running     bool
+	history     []string
+	envMgr      *EnvironmentManager
+	logger      *Logger
+	tempModules map[string]TEMP_Module
 }
 
 // NewCLI creates a new CLI instance
 func NewCLI(modulesDir string) *CLI {
 	return &CLI{
-		manager:  core.NewModuleManager(modulesDir),
-		running:  true,
-		history:  make([]string, 0),
-		envMgr:   NewEnvironmentManager(),
-		logger:   NewLogger(),
-		
+		manager: core.NewModuleManager(modulesDir),
+		running: true,
+		history: make([]string, 0),
+		envMgr:  NewEnvironmentManager(),
+		logger:  NewLogger(),
 	}
 }
 
@@ -41,6 +47,9 @@ func (cli *CLI) Start(banner__ bool) error {
 		cli.PrintBanner()
 	}
 	cli.setupSignalHandler()
+
+	// temp modules
+	cli.tempModules = make(map[string]TEMP_Module)
 
 	// Create readline instance with history support
 	rl, err := cli.getReadlineInstance()
@@ -127,21 +136,6 @@ func (cli *CLI) ExecuteCommand(input string) {
 		return
 	}
 
-	// Handle builtin function calls: funcname(arg1,arg2,arg3) or func(arg arg2)
-	// Check if it looks like a function call: starts with identifier and has matching parentheses
-	/*if strings.Contains(input, "(") && strings.Contains(input, ")") {
-		openParen := strings.Index(input, "(")
-		if openParen > 0 {
-			potentialFunc := input[:openParen]
-			// Check if the part before parenthesis is a valid identifier (no spaces)
-			if !strings.Contains(potentialFunc, " ") && potentialFunc != "" {
-				if cli.tryExecuteBuiltin(input) {
-					return
-				}
-			}
-		}
-	}*/
-
 	// Handle global environment variable syntax (key=value or key=?)
 	if strings.Contains(input, "=") && !strings.Contains(input, " ") {
 		parts := strings.SplitN(input, "=", 2)
@@ -195,13 +189,6 @@ func (cli *CLI) ExecuteCommand(input string) {
 		cli.ListModules()
 	case "env", "envs":
 		cli.envMgr.Display()
-	case "builtins":
-		core.PrintWarning("We are not serving builtins anymore, they were headache! this message will be completely removed in next version!")
-		/*if len(args) > 0 {
-			cli.PrintBuiltins(strings.Join(args, " "))
-		} else {
-			cli.PrintBuiltins("")
-		}*/
 	case "search":
 		if len(args) > 0 {
 			cli.SearchModules(strings.Join(args, " "))
@@ -244,6 +231,12 @@ func (cli *CLI) ExecuteCommand(input string) {
 		cli.ClearScreen()
 	case "refresh", "reload":
 		cli.RefreshModules()
+	case "import", "include":
+		if len(args) == 1 {
+			cli.ImportModules(args[0])
+		} else {
+			core.PrintError("Usage: import /path/to/modules")
+		}
 	case "exit", "quit", "q":
 		cli.running = false
 		fmt.Println()
@@ -259,6 +252,58 @@ func (cli *CLI) ExecuteCommand(input string) {
 			cli.RunModule(cmd, args)
 		}
 	}
+}
+
+func (cli *CLI) ImportModules(dir string) {
+	info, err := os.Stat(dir)
+	if err != nil || !info.IsDir() {
+		core.PrintError("Invalid module directory")
+		return
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		core.PrintError("Failed to read module directory")
+		return
+	}
+
+	count := 0
+
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+
+		modulePath := filepath.Join(dir, e.Name())
+		moduleType := detectModuleType(modulePath)
+		if moduleType == "" {
+			continue
+		}
+
+		cli.tempModules[e.Name()] = TEMP_Module{
+			Name: e.Name(),
+			Path: modulePath,
+			Type: moduleType,
+		}
+		count++
+	}
+
+	if count == 0 {
+		core.PrintWarning("No valid modules found")
+		return
+	}
+
+	core.PrintSuccess(fmt.Sprintf("Imported %d modules (temporary)", count))
+}
+
+func detectModuleType(dir string) string {
+	if _, err := os.Stat(filepath.Join(dir, "run.py")); err == nil {
+		return "python"
+	}
+	if _, err := os.Stat(filepath.Join(dir, "run.sh")); err == nil {
+		return "bash"
+	}
+	return ""
 }
 
 // GetModuleManager returns the module manager instance
@@ -373,7 +418,7 @@ func (cli *CLI) executeForLoop(input string) {
 			// For pipes, capture output
 			result := cli.executePipedCommandsForLoop(expandedCmd)
 			results = append(results, result)
-		}  else {
+		} else {
 			// For modules, execute normally
 			parts := strings.Fields(expandedCmd)
 			if len(parts) > 0 {
@@ -529,8 +574,6 @@ func (cli *CLI) executePipedCommand(cmd string, input string) (string, error) {
 		}
 	}
 
-	
-
 	// Try to execute as module
 	parts := strings.Fields(cmd)
 	if len(parts) > 0 {
@@ -608,10 +651,6 @@ func (cli *CLI) executeModuleForPipe(moduleName string, args []string) (string, 
 	return strings.TrimSpace(result.Output), nil
 }
 
-
-
-
-
 // parseAdvancedArguments parses function arguments with support for:
 // - Quoted strings (both "..." and '...')
 // - Nested builtins $(builtin args) and builtin() function call syntax
@@ -643,9 +682,6 @@ func (cli *CLI) parseAdvancedArguments(argsStr string) []string {
 			continue
 		}
 
-		
-
-		
 		// Handle variable expansion: $varname
 		if ch == '$' && i+1 < len(argsStr) && isValidVarChar(rune(argsStr[i+1])) {
 			i++ // skip $
@@ -747,7 +783,6 @@ func (cli *CLI) findMatchingParen(s string, startIdx int) int {
 
 	return -1 // Not found
 }
-
 
 // expandVariable expands a variable reference
 func (cli *CLI) expandVariable(varName string) string {

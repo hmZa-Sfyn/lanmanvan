@@ -32,8 +32,7 @@ func (cli *CLI) PrintHelp() {
 		{"<module> [args]", "Shorthand: <module> arg_key=value, example: network ip=192.168.1.1"},
 		{"<module> arg_key = value", "Format with spaces (alternative), example: network ip = 192.168.1.1"},
 		{"env, envs", "Show all global environment variables, aliases: envs"},
-		{"builtins", "Show all 30+ builtin functions with examples"},
-		{"builtins <keyword>", "Show all builtin functions matching to keyword with examples"},
+		{"import", "Import a modules from a directory, example: import /path/to/modules (temp)"},
 		{"key=value", "Set global environment variable (persistent), example: timeout=10"},
 		{"key=?", "View global environment variable value, example: timeout=?"},
 		{"create <name> [type]", "Create a new module (python/bash), example: create mymodule python"},
@@ -513,8 +512,6 @@ func HighlightPurple(text string, keyword string) string {
 
 // HighlightPurple highlights all occurrences of keyword in text with purple background.
 // If you don't have this function, use this simple version:
-
-
 
 // getTypeBadge returns a colored badge for module type
 func (cli *CLI) getTypeBadge(moduleType string) string {
